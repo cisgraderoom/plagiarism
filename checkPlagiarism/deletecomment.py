@@ -5,7 +5,7 @@ def commentRemover(text):
     def replacer(match):
         s = match.group(0)
         if s.startswith('/'):
-            return " "
+            return ""
         else:
             return s
     pattern = re.compile(

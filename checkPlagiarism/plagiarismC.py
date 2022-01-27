@@ -3,18 +3,23 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 path = 'checkPlagiarism'
-student_files = [doc for doc in os.listdir(path) if doc.endswith('.c')]
-student_notes = [open(f'{path}\\{File}').read() for File in student_files]
+
+# student_files = [doc for doc in os.listdir() if doc.endswith('.c')]
+# student_notes = [open(File).read() for File in student_files]
 
 def vectorize(Text): return TfidfVectorizer().fit_transform(Text).toarray()
 def similarity(doc1, doc2): return cosine_similarity([doc1, doc2])
 
-vectors = vectorize(student_notes)
-s_vectors = list(zip(student_files, vectors))
+# vectors = vectorize(student_notes)
+# s_vectors = list(zip(student_files, vectors))
 
 def check_plagiarism():
     plagiarism_results = set()
-    global s_vectors
+    student_files = [doc for doc in os.listdir(path) if doc.endswith('.c')]
+    student_notes = [open(f'{path}\\{File}').read() for File in student_files]
+    vectors = vectorize(student_notes)
+    s_vectors = list(zip(student_files, vectors))
+    # global s_vectors
     for student_a, text_vector_a in s_vectors:
         new_vectors = s_vectors.copy()
         current_index = new_vectors.index((student_a, text_vector_a))

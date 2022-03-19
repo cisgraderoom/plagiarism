@@ -1,6 +1,6 @@
 # import requests
 # import json
-# import mysql.connector
+import mysql.connector
 import os,sys
  
 dir = 'checkPlagiarism'

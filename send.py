@@ -9,7 +9,7 @@ channel = connection.channel() # start a channel
 channel.queue_declare(queue='hello') # Declare a queue
 channel.basic_publish(exchange='',
                       routing_key='hello',
-                      body='1')
+                      body='2')
 
-print(" [x] Sent 'problem_id = 1'")
+print(" [x] Sent 'problem_id = 2'")
 connection.close()

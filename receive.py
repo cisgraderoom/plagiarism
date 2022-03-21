@@ -2,7 +2,7 @@
 import pika, os
 from deletecomment import deleteComment
 from plagiarismC import checkPlagiarism
-from getfile import deletefile,getfile
+from getfile import getfile
 # from sendresult import sendresult
 
 # Access the CLODUAMQP_URL environment variable and parse it (fallback to localhost)
@@ -13,10 +13,11 @@ channel = connection.channel() # start a channel
 channel.queue_declare(queue='hello') # Declare a queue
 def callback(ch, method, properties, body):
   print(" [x] Received problem_id :" + str(body))
-  getfile(str(body, 'UTF-8'))
-  deleteComment()
-  checkPlagiarism()
-  deletefile()
+  # getfile(str(body, 'UTF-8'))
+  # file = getfile(str(body, 'UTF-8'))
+  # deleteComment(getfile(str(body, 'UTF-8')))
+  checkPlagiarism(deleteComment(getfile(str(body, 'UTF-8'))))
+  # checkPlagiarism(deleteComment(getfile(str(body, 'UTF-8'))))
   # sendresult(str(body, 'UTF-8'))
 
 channel.basic_consume('hello',

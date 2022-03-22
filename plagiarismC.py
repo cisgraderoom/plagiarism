@@ -1,5 +1,4 @@
-import os,sys
-# import json
+import sys
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -9,43 +8,66 @@ myresult = [{"username":'student01',"code":'aaaaa'},{"username":'student02',"cod
 def vectorize(Text): return TfidfVectorizer().fit_transform(Text).toarray()
 def similarity(doc1, doc2): return cosine_similarity([doc1, doc2])
 
-def checkPlagiarism(myresult):
-    plagiarism_results = []
+def checkPlagiarism(myresult,problem_id):
+    plagiarism_results = set()
     Data = myresult
-    allusername = []
-    allcode = []
-    print(Data)
+    allusernameC = []
+    allcodeC = []
+    allusernameCPP = []
+    allcodeCPP = []
+    allusernameJava = []
+    allcodeJava = []
+    allLang = []
     i = 0
     while i < len(Data):
-        allusername.append(Data[i][0])
-        allcode.append(Data[i][1]) #พยายามแยก code กับชื่อ
+        if Data[i][2] == "c":
+            allusernameC.append(Data[i][0]) #พยายามแยก code กับชื่อ C
+            allcodeC.append(Data[i][1])
+        elif Data[i][2] == "cpp":
+            allusernameCPP.append(Data[i][0]) #พยายามแยก code กับชื่อ CPP
+            allcodeCPP.append(Data[i][1])
+        elif Data[i][2] == "java":
+            allusernameJava.append(Data[i][0]) #พยายามแยก code กับชื่อ JAVA
+            allcodeJava.append(Data[i][1])
+        allLang.append(Data[i][2]) #พยายามแยก ภาษา
         i += 1
-    # for x in myresult:
-        # allusername.append(myresult[x].username)
-        # allcode.append(myresult[x].code) #พยายามแยก code กับชื่อ
-    student_files = allusername #username ต้อง add เป็น array ก่อน
-    # student_files = [doc for doc in os.listdir(path) if doc.endswith('.c')]
-    student_notes = allcode #code ต้อง add เป็น array ก่อน
-    # student_notes = [open(f'{path}\\{File}').read() for File in student_files]
-    vectors = vectorize(student_notes)
-    s_vectors = list(zip(student_files, vectors))
+    
+    allLang = unique(allLang)
 
-    print(student_files)
-    for student_a, text_vector_a in s_vectors:
-        new_vectors = s_vectors.copy()
-        current_index = new_vectors.index((student_a, text_vector_a))
-        del new_vectors[current_index]
-        for student_b, text_vector_b in new_vectors:
-            sim_score = similarity(text_vector_a, text_vector_b)[0][1]
-            student_pair = sorted((student_a, student_b))
-            results = {'username1': student_pair[0],'username2': student_pair[1],'score': sim_score}
-            plagiarism_results.append(results)
+    for x in allLang:
+        if x == "c":
+            student_files = allusernameC
+            student_notes = allcodeC
+        elif x == "cpp":
+            student_files = allusernameCPP
+            student_notes = allcodeCPP
+        elif x == "java":
+            student_files = allusernameJava
+            student_notes = allcodeJava
+        try:
+            vectors = vectorize(student_notes)
+            s_vectors = list(zip(student_files, vectors))
+        except:
+            print("Something wrong in Plagiarism")
+        else:
+            for student_a, text_vector_a in s_vectors:
+                new_vectors = s_vectors.copy()
+                current_index = new_vectors.index((student_a, text_vector_a))
+                del new_vectors[current_index]
+                for student_b, text_vector_b in new_vectors:
+                    sim_score = similarity(text_vector_a, text_vector_b)[0][1]
+                    student_pair = sorted((student_a, student_b))
+                    results = (student_pair[0],student_pair[1],float('{:.2f}'.format(sim_score*100)),int(problem_id))
+                    plagiarism_results.add(results)
+    plagiarism_results = list(plagiarism_results)
     return plagiarism_results
 
-# def check_Plagiarism():
-#     json_string = json.dumps(checkPlagiarism())
-#     with open('result.json', 'w') as outfile:
-#         outfile.write(json_string)
+def unique(list1):
+    unique_list = []
+    for x in list1:
+        if x not in unique_list:
+            unique_list.append(x)
+    return unique_list
 
 if __name__ == '__main__':
     globals()[sys.argv[1]]()

@@ -4,7 +4,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 path = 'checkPlagiarism'
-myresult = [{"username":'student01',"code":'aaaaa'},{"username":'student02',"code":'bbbbb'},{"username":'student03',"code":'aaaaa'},]
 def vectorize(Text): return TfidfVectorizer().fit_transform(Text).toarray()
 def similarity(doc1, doc2): return cosine_similarity([doc1, doc2])
 

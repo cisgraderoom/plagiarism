@@ -1,13 +1,15 @@
 import mysql.connector
 import sys
 import numpy as np
+from decouple import config
+
 def getfile(problem_id):
     if(problem_id != ''):
         mydb = mysql.connector.connect(
-        host="127.0.0.1",
-        user="root",
-        password="cisgraderoom",
-        database="cisgraderoom"
+        host= config('MYSQL_CONTAINER'),
+        user=config('MYSQL_ROOT_USERNAME'),
+        password=config('MYSQL_ROOT_PASSWORD'),
+        database=config('MYSQL_DATABASE')
         )
         mycursor = mydb.cursor()
         sql_select_query = "SELECT a.username,a.code,a.lang FROM submission a INNER JOIN ( SELECT username, MAX(created_at) created_at FROM submission WHERE problem_id = "
@@ -20,23 +22,27 @@ def sendresult(myresult,jobs_id):
     if(myresult != ''):
         try:
             mydb = mysql.connector.connect(
-            host="127.0.0.1",
-            user="root",
-            password="cisgraderoom",
-            database="cisgraderoom"
+            host= config('MYSQL_CONTAINER'),
+            user=config('MYSQL_ROOT_USERNAME'),
+            password=config('MYSQL_ROOT_PASSWORD'),
+            database=config('MYSQL_DATABASE')
             )
             mycursor = mydb.cursor()
-            sql_select_query = "INSERT INTO plagiarism (owner, compare, result, problem_id) VALUES (%s, %s, %s, %s) ON DUPLICATE KEY UPDATE owner = VALUES(owner), compare = VALUES(compare) , result = VALUES(result)"
-            mycursor.executemany(sql_select_query,myresult)
+            values = ', '.join(map(str, myresult))
+            sql_select_query = "INSERT INTO plagiarism (owner, compare, result, problem_id) VALUES {} ON DUPLICATE KEY UPDATE owner = VALUES(owner), compare = VALUES(compare), result = VALUES(result)".format(values)
+
+            print(sql_select_query) #ไว้ดู
+            mycursor.execute(sql_select_query)
             mydb.commit()
-        except Exception as e:
-            print(e)
+        except mysql.connector.Error as error:
+            print("Failed to insert into MySQL table {}".format(error))
+            return False
         else:
             sql = "UPDATE jobs SET status = %s WHERE id = %s;"
             value = (1,jobs_id)
             mycursor.execute(sql,value)
             mydb.commit()
-    return myresult
+    return True
 
 if __name__ == '__main__':
     globals()[sys.argv[1]]()

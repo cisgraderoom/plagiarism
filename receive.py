@@ -3,25 +3,27 @@ import json
 from deletecomment import deleteComment
 from plagiarismC import checkPlagiarism
 from getfile import getfile,sendresult
+from decouple import config
 
 # Access the CLODUAMQP_URL environment variable and parse it (fallback to localhost)
-url = os.environ.get('CLOUDAMQP_URL', 'amqps://stylhohb:JO7Bl-v82OGGuK7EJS85NEJ3yNk4iBLp@cougar.rmq.cloudamqp.com/stylhohb')
+url = config('CLOUDAMQP_URL')
 params = pika.URLParameters(url)
 connection = pika.BlockingConnection(params)
 channel = connection.channel() # start a channel
-channel.queue_declare(queue='hello') # Declare a queue
+channel.queue_declare(queue='cisgraderoom.plagiarism.result',passive=False,durable=True,auto_delete=False)
+
 def callback(ch, method, properties, body):
   print(" [x] Received "+ str(body, 'UTF-8'))
-  object = str(body, 'UTF-8')
-  json_object = json.loads(object)
+  obj = str(body, 'UTF-8')
+  json_object = json.loads(obj)
   problem_id = json_object["problem_id"]
   jobs_id = json_object["jobs_id"]
   result = checkPlagiarism(deleteComment(getfile(problem_id)),problem_id)
-  sendresult(result,int(jobs_id))
+  res = sendresult(result,int(jobs_id))
+  if res == True:
+    channel.basic_ack(delivery_tag = method.delivery_tag)
 
-channel.basic_consume('hello',
-                      callback,
-                      auto_ack=True)
+channel.basic_consume(queue='cisgraderoom.plagiarism.result',on_message_callback=callback,auto_ack=False)
 
 print(' [*] Waiting for messages:')
 channel.start_consuming()
